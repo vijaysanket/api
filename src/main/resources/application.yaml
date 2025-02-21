@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: api
+channel:
+  twitter:
+    clientid: RlF6OWxxSXNmQ2RJRjczYndwNkY6MTpjaQ
+    clientsecret: xu_7MZm41No0CrddMr0905Jh6hlFdC-P1-PnUWfVl6UHxk48Xl
+    redirecturi: http://localhost:3000/callback?channel=twitter
+    scope: tweet.read%20tweet.write
