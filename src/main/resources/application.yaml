@@ -1,4 +1,14 @@
 spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/socialease?useSSL=false&serverTimezone=UTC
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
   application:
     name: api
 channel:
@@ -7,3 +17,7 @@ channel:
     clientsecret: xu_7MZm41No0CrddMr0905Jh6hlFdC-P1-PnUWfVl6UHxk48Xl
     redirecturi: http://localhost:3000/callback?channel=twitter
     scope: tweet.read%20tweet.write
+
+
+
+

@@ -1,6 +1,9 @@
 package com.socialeazy.api.services.connectors;
 
+import com.socialeazy.api.entity.AuthAsset;
+import com.socialeazy.api.repository.AuthAssetRepo;
 import com.socialeazy.api.services.Connector;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +29,9 @@ public class TwitterConnector implements Connector {
     @Value("${channel.twitter.scope}")
     private String scope;
 
+    @Autowired
+    private AuthAssetRepo authAssetRepo;
+
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final String AUTHORIZATION_URL = "https://twitter.com/i/oauth2/authorize";
 
@@ -47,9 +53,22 @@ public class TwitterConnector implements Connector {
         return authorizationUrl;
     }
 
+
+    private  void  saveurl(String state,String codeChallenge,String codeVerifier){
+        AuthAsset authAsset = new AuthAsset();
+        authAsset.setState(state);
+        authAsset.setCodeChallenge(codeChallenge);
+        authAsset.setCodeVerifier(codeVerifier);
+        authAsset.setStatus("NEW");
+        authAssetRepo.save(authAsset);
+
+    }
+
+
+
     @Override
     public void handleAuthRedirect(Map<String, String> requestBody) {
-        requestBody.
+        //requestBody.
     }
 
     private static String buildAuthorizationUrl(String clientId, String redirectUri, String scopes, String state, String codeChallenge) {
