@@ -10,7 +10,7 @@ import lombok.Setter;
 
 @Data
 @Entity
-@Table(name="AuthAsset")
+@Table(name="twitter_auth_asset")
 @NoArgsConstructor
 public class AuthAssetEntity {
     @Id
@@ -21,6 +21,9 @@ public class AuthAssetEntity {
     private String codeVerifier;
 
     @Column
-    private String codeChannelge;
+    private String codeChallenge;
+
+    @Column
+    private String status;
 
 }

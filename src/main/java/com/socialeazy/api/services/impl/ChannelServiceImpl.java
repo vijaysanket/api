@@ -30,4 +30,6 @@ public class ChannelServiceImpl implements ChannelService {
     public void handleAuthRedirection(Map<String, String> requestBody) {
         channels.get(requestBody.get("channel")).handleAuthRedirect(requestBody);
     }
+
+
 }

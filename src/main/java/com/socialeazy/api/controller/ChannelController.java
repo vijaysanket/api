@@ -29,7 +29,5 @@ public class ChannelController {
         }
 
         channelService.handleAuthRedirection(requestBody);
-
-
     }
 }

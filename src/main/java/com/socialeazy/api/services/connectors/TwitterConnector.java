@@ -65,8 +65,11 @@ public class TwitterConnector implements Connector {
         AuthAssetEntity authAssetEntity = new AuthAssetEntity();
         authAssetEntity.setCodeVerifier(codeVerifier);
         authAssetEntity.setState(state);
-        authAssetEntity.setCodeChannelge(codeChallenge);
+        authAssetEntity.setCodeChallenge(codeChallenge);
+        authAssetEntity.setStatus("now");
         authAssetRepo.save(authAssetEntity);
+        System.out.println(codeChallenge);
+        System.out.println(codeVerifier);
         return authorizationUrl;
     }
 
@@ -74,8 +77,8 @@ public class TwitterConnector implements Connector {
     @Override
     public void handleAuthRedirect(Map<String, String> requestBody) {
 
-        String status = requestBody.get("status");
-        Optional<AuthAssetEntity> authAssetEntityOptional = authAssetRepo.findById(status);
+        String state = requestBody.get("state");
+        Optional<AuthAssetEntity> authAssetEntityOptional = authAssetRepo.findById(state);
         if(authAssetEntityOptional.isEmpty()) {
             throw new UnAuthorizedException("Twitter :: Potential CSRF attack detected");
         }
@@ -84,7 +87,13 @@ public class TwitterConnector implements Connector {
         tokenData.put("code", requestBody.get("code"));
         tokenData.put("redirect_uri", redirectUri);
         tokenData.put("client_id", clientId);
+        tokenData.put("client_secret",clientSecret);
         tokenData.put("code_verifier", authAssetEntityOptional.get().getCodeVerifier());
+
+
+
+        String credentials = clientId + ":" + clientSecret;
+        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
 
         String formData = tokenData.entrySet().stream()
                 .map(entry -> entry.getKey() + "=" + urlEncode(entry.getValue()))
@@ -94,6 +103,7 @@ public class TwitterConnector implements Connector {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(TOKEN_URL))
                 .header("Content-Type", "application/x-www-form-urlencoded")
+                .header("Authorization", "Basic " + encodedCredentials)
                 .POST(HttpRequest.BodyPublishers.ofString(formData))
                 .build();
 
@@ -105,6 +115,7 @@ public class TwitterConnector implements Connector {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
     }
 
     private static String buildAuthorizationUrl(String clientId, String redirectUri, String scopes, String state, String codeChallenge) {
@@ -116,7 +127,7 @@ public class TwitterConnector implements Connector {
                 "scope=" + scopes + "&" +
                 "state=" + state + "&" +
                 "code_challenge=" + codeChallenge + "&" +
-                "code_challenge_method=S256";
+                "code_challenge_method=plain";
 
     }
 
@@ -127,14 +138,14 @@ public class TwitterConnector implements Connector {
     }
 
     private static String generateCodeChallenge(String codeVerifier) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hashedBytes = digest.digest(codeVerifier.getBytes(StandardCharsets.UTF_8));
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(hashedBytes);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Something went wrong");
-        }
-
+//        try {
+//            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+//            byte[] hashedBytes = digest.digest(codeVerifier.getBytes(StandardCharsets.UTF_8));
+//            return Base64.getUrlEncoder().withoutPadding().encodeToString(hashedBytes);
+//        } catch (NoSuchAlgorithmException e) {
+//            throw new RuntimeException("Something went wrong");
+//        }
+        return codeVerifier;
     }
 
     private static String generateRandomState() {
