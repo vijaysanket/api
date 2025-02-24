@@ -1,6 +1,22 @@
 spring:
+  jpa:
+    hibernate:
+      dialect: org.hibernate.dialect.MySQL8Dialect  # Use MySQL8Dialect for MySQL 8+
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: true
+    open-in-view: false
+    ddl-auto: update
+  datasource:
+    url: jdbc:mysql://localhost:3306/socialeaze
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver  # Fixed the driver class name
+    hikari:
+      maximum-pool-size: 5
   application:
     name: api
+
 channel:
   twitter:
     clientid: RlF6OWxxSXNmQ2RJRjczYndwNkY6MTpjaQ
