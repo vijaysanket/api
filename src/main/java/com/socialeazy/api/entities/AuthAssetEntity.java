@@ -26,4 +26,5 @@ public class AuthAssetEntity {
     @Column
     private String status;
 
+
 }

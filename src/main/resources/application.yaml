@@ -23,7 +23,11 @@ channel:
     clientsecret: xu_7MZm41No0CrddMr0905Jh6hlFdC-P1-PnUWfVl6UHxk48Xl
     redirecturi: http://localhost:3000/callback?channel=twitter
     scope: tweet.read%20tweet.write
-
+  linkedin:
+    clientid: 862xieml7269ok
+    clientsecret: WPL_AP1.hqSjtorV2a6U1kbs.r18kJw==
+    redirecturi: http://localhost:3000/callback?channel=linkedin
+    scope: openid,w_member_social,profile,email
 
 
 
