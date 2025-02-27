@@ -8,26 +8,28 @@ spring:
     open-in-view: false
     ddl-auto: update
   datasource:
-    url: jdbc:mysql://localhost:3306/socialease
+    url: jdbc:mysql://localhost:3306/socialeaze
     username: root
-    password: 1234
+    password: Horton_28
     driver-class-name: com.mysql.cj.jdbc.Driver  # Fixed the driver class name
     hikari:
       maximum-pool-size: 5
   application:
     name: api
-
+app:
+  cors:
+    allowedOrigins: r"https://.+\.stackblitz\.io"
 channel:
-  twitter:
-    clientid: RlF6OWxxSXNmQ2RJRjczYndwNkY6MTpjaQ
-    clientsecret: xu_7MZm41No0CrddMr0905Jh6hlFdC-P1-PnUWfVl6UHxk48Xl
-    redirecturi: http://localhost:3000/callback?channel=twitter
-    scope: tweet.read%20tweet.write
   linkedin:
     clientid: 862xieml7269ok
     clientsecret: WPL_AP1.hqSjtorV2a6U1kbs.r18kJw==
     redirecturi: http://localhost:3000/callback?channel=linkedin
     scope: openid,w_member_social,profile,email
+  twitter:
+    clientid: RlF6OWxxSXNmQ2RJRjczYndwNkY6MTpjaQ
+    clientsecret: xu_7MZm41No0CrddMr0905Jh6hlFdC-P1-PnUWfVl6UHxk48Xl
+    redirecturi: http://localhost:3000/callback
+    scope: tweet.read tweet.write offline.access users.read
 
 
 

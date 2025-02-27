@@ -1,5 +1,8 @@
 package com.socialeazy.api.services;
 
+import com.socialeazy.api.entities.AccountsEntity;
+import com.socialeazy.api.entities.PostsEntity;
+
 import java.util.Map;
 
 public interface Connector {
@@ -8,4 +11,6 @@ public interface Connector {
     String getAuthUrl();
 
     void handleAuthRedirect(Map<String, String> requestBody);
+
+    void post(AccountsEntity accountEntity, PostsEntity postsEntity);
 }
