@@ -1,6 +1,8 @@
 package com.socialeazy.api.services.connectors;
 
+import com.socialeazy.api.entities.AccountsEntity;
 import com.socialeazy.api.entities.AuthAssetEntity;
+import com.socialeazy.api.entities.PostsEntity;
 import com.socialeazy.api.repo.AuthAssetRepo;
 import com.socialeazy.api.services.Connector;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +60,11 @@ public class LinkedinConnector implements Connector {
 
     @Override
     public void handleAuthRedirect(Map<String, String> requestBody) {
+
+    }
+
+    @Override
+    public void post(AccountsEntity accountEntity, PostsEntity postsEntity) {
 
     }
 
