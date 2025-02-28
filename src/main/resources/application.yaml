@@ -10,7 +10,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/socialeaze
     username: root
-    password: root
+    password: Horton_28
     driver-class-name: com.mysql.cj.jdbc.Driver  # Fixed the driver class name
     hikari:
       maximum-pool-size: 5
@@ -23,12 +23,12 @@ channel:
   linkedin:
     clientid: 862xieml7269ok
     clientsecret: WPL_AP1.hqSjtorV2a6U1kbs.r18kJw==
-    redirecturi: http://localhost:3000/callback?channel=linkedin
+    redirecturi: http://localhost:3000/callback/linkedin
     scope: openid,w_member_social,profile,email
   twitter:
     clientid: RlF6OWxxSXNmQ2RJRjczYndwNkY6MTpjaQ
     clientsecret: xu_7MZm41No0CrddMr0905Jh6hlFdC-P1-PnUWfVl6UHxk48Xl
-    redirecturi: http://localhost:3000/callback
+    redirecturi: http://localhost:3000/callback/twitter
     scope: tweet.read tweet.write offline.access users.read
 
 

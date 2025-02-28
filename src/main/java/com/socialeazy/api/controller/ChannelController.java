@@ -19,9 +19,9 @@ public class ChannelController {
     private ChannelService channelService;
 
     @GetMapping("/get-auth-url")
-    public RedirectView getAuthUrl(@RequestParam @Validated String channelName) {
+    public String getAuthUrl(@RequestParam @Validated String channelName) {
         String authUrl = channelService.getAuthUrl(channelName);
-        return new RedirectView(authUrl);
+        return authUrl;
         //return recordService.createObject(createObjectRequest);
     }
 

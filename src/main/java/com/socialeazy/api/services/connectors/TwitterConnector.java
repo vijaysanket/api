@@ -99,26 +99,21 @@ public class TwitterConnector implements Connector {
         if (authAssetEntityOptional.isEmpty()) {
             throw new UnAuthorizedException("Twitter :: Potential CSRF attack detected");
         }
-
         // Decode the authorization code
         String code = urlDecode(requestBody.get("code"));
         String codeVerifier = authAssetEntityOptional.get().getCodeVerifier();
-
         Map<String, String> tokenData = new HashMap<>();
         tokenData.put("grant_type", "authorization_code");
         tokenData.put("code", code);
-        tokenData.put("redirect_uri", "http://localhost:3000/callback");
+        tokenData.put("redirect_uri", redirectUri);
         tokenData.put("client_id", clientId);
         tokenData.put("code_verifier", codeVerifier);
-
         String formData = tokenData.entrySet().stream()
                 .map(entry -> entry.getKey() + "=" + entry.getValue())
                 .reduce((a, b) -> a + "&" + b)
                 .orElse("");
-
         String credentials = clientId + ":" + clientSecret;
         String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
-
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(TOKEN_URL))
                 .header("Content-Type", "application/x-www-form-urlencoded")
@@ -161,12 +156,11 @@ public class TwitterConnector implements Connector {
         return AUTHORIZATION_URL + "?" +
                 "response_type=code&" +
                 "client_id=" + clientId + "&" +
-                "redirect_uri=" + "http://localhost:3000/callback" + "&" +
+                "redirect_uri=" + redirectUri + "&" +
                 "scope=" + urlEncode(scopes) + "&" +
                 "state=" + state + "&" +
                 "code_challenge=" + codeChallenge + "&" +
                 "code_challenge_method=S256";
-
     }
 
     private static String generateCodeVerifier() {
