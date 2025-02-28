@@ -154,26 +154,29 @@ public class TwitterConnector implements Connector {
             String profileImageUrl = userDetails.get("data").get("profile_image_url").asText();
             String accountName = userDetails.get("data").get("name").asText();
             int followerCount = userDetails.get("data").get("public_metrics").get("followers_count").asInt();
-
-
-            // Save to database
+            Optional<AccountsEntity> accountsEntityOptional = accountsRepo.findByAccountHandleAndUserId(username, 1);
             AccountsEntity accountsEntity = new AccountsEntity();
-            accountsEntity.setAccountHandle("twitter");
-            accountsEntity.setAccessToken(accessToken);
-            accountsEntity.setRefreshToken(refreshToken);
-            accountsEntity.setValidTill(LocalDateTime.now().plusSeconds(expiresIn));
-            accountsEntity.setConnectedAt(LocalDateTime.now());
-            accountsEntity.setFollowerCount(followerCount);
-            accountsEntity.setAccountOf(username);
-            accountsEntity.setUserId(1);
-            accountsEntity.setProfilePicture(profileImageUrl);
-            accountsEntity.setAccountName(accountName);
-            accountsEntity.setChannelId(twitterId);
+            if(accountsEntityOptional.isPresent()) {
+                accountsEntity = accountsEntityOptional.get();
+                accountsEntity.setAccessToken(accessToken);
+                accountsEntity.setRefreshToken(refreshToken);
+                accountsEntity.setValidTill(LocalDateTime.now().plusSeconds(expiresIn));
+
+            } else {
+                accountsEntity.setAccountHandle(username);
+                accountsEntity.setAccessToken(accessToken);
+                accountsEntity.setRefreshToken(refreshToken);
+                accountsEntity.setValidTill(LocalDateTime.now().plusSeconds(expiresIn));
+                accountsEntity.setConnectedAt(LocalDateTime.now());
+                accountsEntity.setFollowerCount(followerCount);
+                accountsEntity.setAccountOf("TWITTER");
+                accountsEntity.setUserId(1);
+                accountsEntity.setProfilePicture(profileImageUrl);
+                accountsEntity.setAccountName(accountName);
+                accountsEntity.setChannelId(twitterId);
+            }
             accountsRepo.save(accountsEntity);
             System.out.println("Successfully saved Twitter authentication data!");
-
-
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
