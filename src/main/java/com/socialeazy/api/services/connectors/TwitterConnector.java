@@ -1,9 +1,12 @@
 package com.socialeazy.api.services.connectors;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.socialeazy.api.entities.AccountsEntity;
 import com.socialeazy.api.entities.AuthAssetEntity;
 import com.socialeazy.api.entities.PostsEntity;
 import com.socialeazy.api.exceptions.UnAuthorizedException;
+import com.socialeazy.api.repo.AccountsRepo;
 import com.socialeazy.api.repo.AuthAssetRepo;
 import com.socialeazy.api.services.Connector;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +29,12 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+
 
 @Component
 public class TwitterConnector implements Connector {
@@ -48,6 +52,13 @@ public class TwitterConnector implements Connector {
 
     @Autowired
     private AuthAssetRepo authAssetRepo;
+
+    @Autowired
+    private AccountsRepo accountsRepo;
+
+
+
+
 
 
     @Autowired
@@ -92,6 +103,7 @@ public class TwitterConnector implements Connector {
         }
     }
 
+
     @Override
     public void handleAuthRedirect(Map<String, String> requestBody) {
         String state = requestBody.get("state");
@@ -124,11 +136,66 @@ public class TwitterConnector implements Connector {
         try {
             HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             System.out.println(response.body());
+
+            // Parse JSON response
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonResponse = objectMapper.readTree(response.body());
+
+            String accessToken = jsonResponse.get("access_token").asText();
+            String refreshToken = jsonResponse.has("refresh_token") ? jsonResponse.get("refresh_token").asText() : null;
+            int expiresIn = jsonResponse.get("expires_in").asInt();
+
+            JsonNode userDetails = fetchTwitterUserDetails(accessToken);
+
+
+            // Extract user details
+            String twitterId = userDetails.get("data").get("id").asText();
+            String username = userDetails.get("data").get("username").asText();
+            String profileImageUrl = userDetails.get("data").get("profile_image_url").asText();
+            String accountName = userDetails.get("data").get("name").asText();
+            int followerCount = userDetails.get("data").get("followerCount").asInt();
+
+
+            // Save to database
+            AccountsEntity accountsEntity = new AccountsEntity();
+            accountsEntity.setAccountHandle("twitter");
+            accountsEntity.setAccessToken(accessToken);
+            accountsEntity.setRefreshToken(refreshToken);
+            accountsEntity.setValidTill(LocalDateTime.now().plusSeconds(expiresIn));
+            accountsEntity.setConnectedAt(LocalDateTime.now());
+            accountsEntity.setFollowerCount(followerCount);
+            accountsEntity.setAccountOf(username);
+            accountsEntity.setUserId(1);
+            accountsEntity.setProfilePicture(profileImageUrl);
+            accountsEntity.setAccountName(accountName);
+            accountsEntity.setChannelId(twitterId);
+            accountsRepo.save(accountsEntity);
+            System.out.println("Successfully saved Twitter authentication data!");
+
+
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+
+    private JsonNode fetchTwitterUserDetails(String accessToken) throws IOException, InterruptedException {
+        String userInfoUrl = BASE_URL + "/users/me?user.fields=id,name,username,profile_image_url,public_metrics";
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(userInfoUrl))
+                .header("Authorization", "Bearer " + accessToken)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readTree(response.body());
     }
 
     @Override
@@ -184,6 +251,7 @@ public class TwitterConnector implements Connector {
         SECURE_RANDOM.nextBytes(randomBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
+
 
     private static String urlEncode(String s) {
         try {
