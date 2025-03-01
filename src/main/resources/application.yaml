@@ -30,6 +30,11 @@ channel:
     clientsecret: xu_7MZm41No0CrddMr0905Jh6hlFdC-P1-PnUWfVl6UHxk48Xl
     redirecturi: http://localhost:3000/callback/twitter
     scope: tweet.read tweet.write offline.access users.read
+  Instagram:
+    clientid: 813313314325603
+    clientsecret: 60473b923df2485fcf55230cf8fe5500
+    redirecturi: http://localhost:3000/callback/Instagram
+    scope: user_profile,user_media
 
 
 
