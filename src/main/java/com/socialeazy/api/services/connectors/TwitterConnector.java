@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -56,10 +57,8 @@ public class TwitterConnector implements Connector {
     @Autowired
     private AccountsRepo accountsRepo;
 
-
-
-
-
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -132,22 +131,15 @@ public class TwitterConnector implements Connector {
                 .header("Authorization", "Basic " + encodedCredentials)
                 .POST(HttpRequest.BodyPublishers.ofString(formData))
                 .build();
-
         try {
             HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             System.out.println(response.body());
-
             // Parse JSON response
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonResponse = objectMapper.readTree("{\"token_type\":\"bearer\",\"expires_in\":7200,\"access_token\":\"aWNET29CNTFVWlZKM2ZEUUFUdUIwT2ZxMldVYnB5TWxQVE1XRDUzOE1uSWg0OjE3NDA3MjQzMDE0NzM6MToxOmF0OjE\",\"scope\":\"tweet.write users.read tweet.read offline.access\",\"refresh_token\":\"d09sdjJjQU5wUGJhNVRHYjU2U29pNGwxczUtdFM3eVpaU3NUOTZDb0tMUFRIOjE3NDA3MjQzMDE0NzM6MTowOnJ0OjE\"}");
-
+            JsonNode jsonResponse = objectMapper.readTree(response.body());
             String accessToken = jsonResponse.get("access_token").asText();
             String refreshToken = jsonResponse.has("refresh_token") ? jsonResponse.get("refresh_token").asText() : null;
             int expiresIn = jsonResponse.get("expires_in").asInt();
-
             JsonNode userDetails = fetchTwitterUserDetails(accessToken);
-
-
             // Extract user details
             String twitterId = userDetails.get("data").get("id").asText();
             String username = userDetails.get("data").get("username").asText();
@@ -161,7 +153,6 @@ public class TwitterConnector implements Connector {
                 accountsEntity.setAccessToken(accessToken);
                 accountsEntity.setRefreshToken(refreshToken);
                 accountsEntity.setValidTill(LocalDateTime.now().plusSeconds(expiresIn));
-
             } else {
                 accountsEntity.setAccountHandle(username);
                 accountsEntity.setAccessToken(accessToken);
@@ -184,8 +175,6 @@ public class TwitterConnector implements Connector {
         }
     }
 
-
-
     private JsonNode fetchTwitterUserDetails(String accessToken) throws IOException, InterruptedException {
         String userInfoUrl = BASE_URL + "/users/me?user.fields=id,name,username,profile_image_url,public_metrics";
 
@@ -202,7 +191,7 @@ public class TwitterConnector implements Connector {
     }
 
     @Override
-    public void post(AccountsEntity accountEntity, PostsEntity postsEntity) {
+    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
@@ -214,15 +203,58 @@ public class TwitterConnector implements Connector {
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
         // Making POST request
-        ResponseEntity<String> response = restTemplate.exchange(BASE_URL+"/tweets", HttpMethod.POST, entity, String.class);
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(BASE_URL + "/tweets", HttpMethod.POST, entity, String.class);
+            System.out.println("Response Code: " + response.getStatusCodeValue());
+            System.out.println("Response Body: " + response.getBody());
+        } catch(HttpClientErrorException.Unauthorized e) {
+            if(retry) {
+                refreshAccessToken(accountEntity);
+                post(accountEntity, postsEntity, false);
+            } else {
+                throw new RuntimeException("Something went wrong");
+            }
+        }
+    }
 
-        // Printing response
-        System.out.println("Response Code: " + response.getStatusCodeValue());
-        System.out.println("Response Body: " + response.getBody());
+    private void refreshAccessToken(AccountsEntity accountEntity) {
+        Map<String, String> tokenData = new HashMap<>();
+        tokenData.put("grant_type", "refresh_token");
+        tokenData.put("client_id", clientId);
+        tokenData.put("refresh_token", accountEntity.getRefreshToken());
+        String formData = tokenData.entrySet().stream()
+                .map(entry -> entry.getKey() + "=" + entry.getValue())
+                .reduce((a, b) -> a + "&" + b)
+                .orElse("");
+        String credentials = clientId + ":" + clientSecret;
+        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(TOKEN_URL))
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .header("Authorization", "Basic " + encodedCredentials)
+                .POST(HttpRequest.BodyPublishers.ofString(formData))
+                .build();
+
+
+
+        try {
+            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            JsonNode jsonResponse = objectMapper.readTree(response.body());
+
+            String accessToken = jsonResponse.get("access_token").asText();
+            String refreshToken = jsonResponse.has("refresh_token") ? jsonResponse.get("refresh_token").asText() : null;
+            accountEntity.setAccessToken(accessToken);
+            accountEntity.setRefreshToken(refreshToken);
+            accountsRepo.save(accountEntity);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     private static String buildAuthorizationUrl(String clientId, String redirectUri, String scopes, String state, String codeChallenge) {
-
         return AUTHORIZATION_URL + "?" +
                 "response_type=code&" +
                 "client_id=" + clientId + "&" +
@@ -254,7 +286,6 @@ public class TwitterConnector implements Connector {
         SECURE_RANDOM.nextBytes(randomBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
-
 
     private static String urlEncode(String s) {
         try {

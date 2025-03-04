@@ -12,5 +12,5 @@ public interface Connector {
 
     void handleAuthRedirect(Map<String, String> requestBody);
 
-    void post(AccountsEntity accountEntity, PostsEntity postsEntity);
+    void post(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry);
 }

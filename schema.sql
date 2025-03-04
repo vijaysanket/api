@@ -39,15 +39,17 @@ CREATE TABLE `Accounts` (
   PRIMARY KEY (`id`)
 );
 
-CREATE TABLE `POST` (
-  `id` int primary key auto_increment,
+CREATE TABLE `Post` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `userId` int DEFAULT NULL,
   `postText` mediumtext,
   `addedAt` datetime DEFAULT CURRENT_TIMESTAMP,
   `scheduledAt` datetime DEFAULT NULL,
   `status` varchar(30) DEFAULT NULL,
-  `orgId` int DEFAULT NULL
-);
+  `orgId` int DEFAULT NULL,
+  `channelId` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+)
 
 CREATE TABLE `PostAccounts` (
   `id` int NOT NULL AUTO_INCREMENT,

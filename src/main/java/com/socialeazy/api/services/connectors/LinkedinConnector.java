@@ -47,7 +47,7 @@ public class LinkedinConnector implements Connector {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
     private static final String AUTHORIZATION_URL = "https://www.linkedin.com/oauth/v2/authorization";
     private static final String TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken";
-    private static final String PROFILE_URL = "https://api.linkedin.com/v2/me";
+    private static final String PROFILE_URL = "https://api.linkedin.com/v2/userinfo";
     private static final String EMAIL_URL = "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))";
     private static final String POST_URL = "https://api.linkedin.com/v2/ugcPosts";
 
@@ -84,19 +84,17 @@ public class LinkedinConnector implements Connector {
         String accessToken = getAccessToken(code);
 
         // Fetch LinkedIn User Profile & Email
-        //JsonNode userProfile = fetchLinkedInUserDetails(accessToken);
-        JsonNode userEmail = fetchLinkedInEmail(accessToken);
+        JsonNode userProfile = fetchLinkedInUserDetails(accessToken);
+        //JsonNode userEmail = fetchLinkedInEmail(accessToken);
 
 
 
 
 //        // Extract User Information
-//        String linkedInId = userProfile.get("id").asText();
-//        String firstName = userProfile.get("firstName").get("localized").get("en_US").asText();
-//        String lastName = userProfile.get("lastName").get("localized").get("en_US").asText();
-//        String profilePicture = userProfile.path("profilePicture").path("displayImage~").path("elements").get(0)
-              //  .path("identifiers").get(0).get("identifier").asText();
-        String email = userEmail.path("elements").get(0).path("handle~").get("emailAddress").asText();
+        String linkedInId = userProfile.get("sub").asText();
+        String name = userProfile.get("name").asText();
+        String profilePicture = userProfile.path("picture").asText();
+        //String email = userEmail.path("elements").get(0).path("handle~").get("emailAddress").asText();
 
         // Save to Database
         AccountsEntity accountsEntity = new AccountsEntity();
@@ -104,9 +102,9 @@ public class LinkedinConnector implements Connector {
         accountsEntity.setAccessToken(accessToken);
         accountsEntity.setValidTill(LocalDateTime.now().plusSeconds(3600)); // 1-hour validity
         accountsEntity.setConnectedAt(LocalDateTime.now());
-     //   accountsEntity.setAccountName(firstName + " " + lastName);
-       // accountsEntity.setProfilePicture(profilePicture);
-        //accountsEntity.setChannelId(linkedInId);
+        accountsEntity.setAccountName(name);
+        accountsEntity.setProfilePicture(profilePicture);
+        accountsEntity.setChannelId(linkedInId);
         accountsRepo.save(accountsEntity);
 
         System.out.println("✅ Successfully saved LinkedIn authentication data!");
@@ -114,7 +112,7 @@ public class LinkedinConnector implements Connector {
 
     // Step 3: Post Content to LinkedIn
     @Override
-    public void post(AccountsEntity accountEntity, PostsEntity postsEntity) {
+    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry) {
         String accessToken = accountEntity.getAccessToken();
         String author = "urn:li:person:" + accountEntity.getChannelId();
 
@@ -162,6 +160,7 @@ public class LinkedinConnector implements Connector {
         if (response.getStatusCode().is2xxSuccessful()) {
             try {
                 JsonNode jsonResponse = new ObjectMapper().readTree(response.getBody());
+                System.out.println(response.getBody());
                 return jsonResponse.get("access_token").asText();
             } catch (Exception e) {
                 throw new RuntimeException("Failed to parse LinkedIn token response", e);
@@ -169,6 +168,7 @@ public class LinkedinConnector implements Connector {
         } else {
             throw new RuntimeException("Failed to obtain LinkedIn token: " + response.getBody());
         }
+
     }
 
     // Helper Methods: Fetch LinkedIn Profile & Email
@@ -176,9 +176,9 @@ public class LinkedinConnector implements Connector {
         return fetchLinkedInData(PROFILE_URL, accessToken);
     }
 
-    private JsonNode fetchLinkedInEmail(String accessToken) {
-        return fetchLinkedInData(EMAIL_URL, accessToken);
-    }
+//    private JsonNode fetchLinkedInEmail(String accessToken) {
+//        return fetchLinkedInData(EMAIL_URL, accessToken);
+//    }
 
     private JsonNode fetchLinkedInData(String url, String accessToken) {
         HttpHeaders headers = new HttpHeaders();
