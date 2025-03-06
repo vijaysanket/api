@@ -118,7 +118,7 @@ public class FacebookConnector implements Connector {
     }
 
     @Override
-    public void post(AccountsEntity accountEntity, PostsEntity postsEntity) {
+    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry) {
 
     }
 

@@ -5,6 +5,7 @@ import com.socialeazy.api.domains.responses.PostResponse;
 import com.socialeazy.api.services.PostService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -21,6 +22,7 @@ public class PostController {
 
     @PostMapping("/post")
     public void createPost(@RequestHeader int userId, @RequestHeader int orgId, @RequestBody PostRequest postRequest) {
+        log.info("Authentication: {}", SecurityContextHolder.getContext().getAuthentication());
         postService.createPost(userId, orgId, postRequest);
     }
 

@@ -1,5 +1,6 @@
 package com.socialeazy.api.services.impl;
 
+import com.socialeazy.api.constants.RuntimeConstants;
 import com.socialeazy.api.domains.requests.PostRequest;
 import com.socialeazy.api.domains.responses.PostResponse;
 import com.socialeazy.api.entities.AccountsEntity;
@@ -21,6 +22,9 @@ import java.util.Optional;
 
 @Service
 public class PostServiceImpl implements PostService {
+
+    @Autowired
+    private RuntimeConstants runtimeConstants;
 
     @Autowired
     private PostsRepo postsRepo;
@@ -49,13 +53,25 @@ public class PostServiceImpl implements PostService {
             PostAccountsEntity postAccountsEntity = new PostAccountsEntity();
             postAccountsEntity.setAccountId(accountId);
             postAccountsEntity.setPostId(postsEntity.getId());
+            postAccountsEntity.setStatus("SCHEDULED");
+
+            if(postRequest.getStatus().equals("NOW")) {
+                AccountsEntity accountEntity = accountsRepo.findById(postAccountsEntity.getAccountId()).get();
+                runtimeConstants.channels.get(accountEntity.getAccountOf().toLowerCase()).post(accountEntity, postsEntity, true);
+                postAccountsEntity.setStatus("PUBLISHED");
+            }
             postAccountsRepo.save(postAccountsEntity);
         }
+        if(postRequest.getStatus().equals("NOW")) {
+            postsEntity.setStatus("PUBLISHED");
+        }
+        postsRepo.save(postsEntity);
+
     }
 
     @Override
     public List<PostResponse> getPosts(int userId, int orgId, LocalDateTime fromDate, LocalDateTime toDate) {
-        List<PostsEntity> scheduledPosts = postsRepo.findByScheduledAtBetween(fromDate, toDate);
+        List<PostsEntity> scheduledPosts = postsRepo.findByOrgIdAndScheduledAtBetween(orgId,fromDate, toDate);
         List<PostResponse> responseList = new ArrayList<>();
         for(PostsEntity postEntity : scheduledPosts) {
             List<PostAccountsEntity> postAccountsEntityList = postAccountsRepo.findByPostId(postEntity.getId());
@@ -82,7 +98,35 @@ public class PostServiceImpl implements PostService {
         if(!existingPostOptional.isPresent()) {
             throw new ResourceNotFoundException("Post corressponding to postId not exists");
         }
+        PostsEntity existingPosts = existingPostOptional.get();
+        if(existingPosts.getStatus().equals("PUBLISHED")) {
+            throw new UnsupportedOperationException("Post already published");
+        }
 
+
+        existingPosts.setPostText(postRequest.getPostText());
+        existingPosts.setStatus(postRequest.getStatus());
+        existingPosts.setStatus(postRequest.getStatus());
+        existingPosts.setScheduledAt(postRequest.getScheduledAt());
+        postsRepo.save(existingPosts);
+
+        for (PostAccountsEntity postAccountsEntity : postAccountsRepo.findByPostId(postId)) {
+            if(!postRequest.getAccountIds().contains(postAccountsEntity.getAccountId())) {
+                postAccountsEntity.setStatus("DELETED");
+                postAccountsRepo.save(postAccountsEntity);
+            }
+        }
+
+        for(int accountId: postRequest.getAccountIds()) {
+            Optional<PostAccountsEntity> postAccountsEntity = postAccountsRepo.findByAccountIdAndPostId(accountId, postId);
+            if(!postAccountsEntity.isPresent()) {
+                PostAccountsEntity newPostAccountsEntity = new PostAccountsEntity();
+                newPostAccountsEntity.setAccountId(accountId);
+                newPostAccountsEntity.setPostId(postId);
+                newPostAccountsEntity.setStatus("SCHEDULED");
+                postAccountsRepo.save(newPostAccountsEntity);
+            }
+        }
         return null;
     }
 }

@@ -18,4 +18,7 @@ public class PostAccountsEntity {
 
     @Column
     private int accountId;
+
+    @Column
+    private String status;
 }

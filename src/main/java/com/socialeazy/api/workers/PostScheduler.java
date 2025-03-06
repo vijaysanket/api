@@ -41,13 +41,20 @@ public class PostScheduler {
     @SchedulerLock(name = "schedulePost", lockAtMostFor = "60s", lockAtLeastFor = "60s")
     public void schedulePost() {
 
-        List<PostsEntity> postsEntityList = postsRepo.findByScheduledAtAndStatus(LocalDateTime.now().minusMinutes(10).truncatedTo(ChronoUnit.MINUTES), "SCHEDULED");
+        List<PostsEntity> postsEntityList = postsRepo.getScheduledPosts(LocalDateTime.now().minusMinutes(10).truncatedTo(ChronoUnit.MINUTES), "SCHEDULED");
         for(PostsEntity postsEntity : postsEntityList) {
             List<PostAccountsEntity> postAccountsEntityList = postAccountsRepo.findByPostId(postsEntity.getId());
             for(PostAccountsEntity postAccountsEntity : postAccountsEntityList) {
+                if(postAccountsEntity.getStatus().equals("DELETED")) {
+                    continue;
+                }
                 AccountsEntity accountEntity = accountsRepo.findById(postAccountsEntity.getAccountId()).get();
                 runtimeConstants.channels.get(accountEntity.getAccountOf().toLowerCase()).post(accountEntity, postsEntity, true);
+                postAccountsEntity.setStatus("PUBLISHED");
+                postAccountsRepo.save(postAccountsEntity);
             }
+            postsEntity.setStatus("PUBLISHED");
+            postsRepo.save(postsEntity);
         }
 
 

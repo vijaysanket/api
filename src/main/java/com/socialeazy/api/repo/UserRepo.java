@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface UserRepo extends JpaRepository<UserEntity, Integer> {
     Optional<UserEntity> findByEmailIdAndPasswordAndIsActive(String emailId, String password, boolean isActive);
+
+    Optional<UserEntity> findByIdAndOrgId(Long aLong, Long aLong1);
 }

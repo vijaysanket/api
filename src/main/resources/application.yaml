@@ -17,11 +17,15 @@ spring:
   application:
     name: api
 app:
+  cors:
+    allowedOrigins:
+      - "https://*.stackblitz.io"
+      - "http://localhost:3000"
+      - "*.webcontainer-api.io"
+      - "https://zp1v56uxy8rdx5ypatb0ockcb9tr6a-oci3-ommlfhg8--3000--495c5120.local-credentialless.webcontainer-api.io"
   auth:
     tokenSecret: 04ca023b39512e46d0c2cf4b48d5aac61d34302994c87ed4eff225dcf3b0a218739f3897051a057f9b846a69ea2927a587044164b7bae5e1306219d50b588cb1
     tokenExpirationMsec: 864000000
-  cors:
-    allowedOrigins: r"https://.+\.stackblitz\.io"
 channel:
   linkedin:
     clientid: 86gu36q9t2wcg1

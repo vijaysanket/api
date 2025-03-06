@@ -105,6 +105,7 @@ public class LinkedinConnector implements Connector {
         accountsEntity.setAccountName(name);
         accountsEntity.setProfilePicture(profilePicture);
         accountsEntity.setChannelId(linkedInId);
+        //accountsEntity.setUserId();
         accountsRepo.save(accountsEntity);
 
         System.out.println("✅ Successfully saved LinkedIn authentication data!");
