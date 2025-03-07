@@ -134,12 +134,15 @@ public class TwitterConnector implements Connector {
         try {
             HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
             System.out.println(response.body());
-            // Parse JSON response
+            if(response.statusCode() != 200) {
+                throw new RuntimeException("try again");
+            }
             JsonNode jsonResponse = objectMapper.readTree(response.body());
             String accessToken = jsonResponse.get("access_token").asText();
             String refreshToken = jsonResponse.has("refresh_token") ? jsonResponse.get("refresh_token").asText() : null;
             int expiresIn = jsonResponse.get("expires_in").asInt();
             JsonNode userDetails = fetchTwitterUserDetails(accessToken);
+
             // Extract user details
             String twitterId = userDetails.get("data").get("id").asText();
             String username = userDetails.get("data").get("username").asText();

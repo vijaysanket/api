@@ -123,6 +123,7 @@ public class InstagramConnector implements Connector {
 
     }
 
+
     private JsonNode fetchInstagramUserDetails(String accessToken) throws IOException, InterruptedException {
         String userInfoUrl = BASE_URL + "/me?fields=id,username&access_token=" + accessToken;
         HttpRequest request = HttpRequest.newBuilder()

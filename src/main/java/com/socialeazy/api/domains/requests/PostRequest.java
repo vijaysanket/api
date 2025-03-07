@@ -10,6 +10,7 @@ public class PostRequest {
 
     private String postText;
 
+
     private LocalDateTime scheduledAt;
 
     private String status = "Draft";

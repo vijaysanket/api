@@ -13,10 +13,12 @@ import com.socialeazy.api.repo.PostAccountsRepo;
 import com.socialeazy.api.repo.PostsRepo;
 import com.socialeazy.api.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,13 +40,21 @@ public class PostServiceImpl implements PostService {
     @Autowired
     private AccountsRepo accountsRepo;
 
+    public static final String[] Valid_status = {"DRAFT" ,"PUBLISHED" , "SCHEDULED"};
+
     @Override
     public void createPost(int userId, int orgId, PostRequest postRequest) {
+
+        if (postRequest.getScheduledAt() != null && postRequest.getScheduledAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Scheduled time cannot be in the past");
+        }
+
         PostsEntity postsEntity = new PostsEntity();
         postsEntity.setPostText(postRequest.getPostText());
-        postsEntity.setStatus(postRequest.getStatus());
         postsEntity.setAddedAt(LocalDateTime.now());
         postsEntity.setScheduledAt(postRequest.getScheduledAt());
+
+        postsEntity.setStatus("SCHEDULED");
         postsEntity.setUserId(userId);
         postsEntity.setOrgId(orgId);
         postsEntity = postsRepo.save(postsEntity);
@@ -128,5 +138,31 @@ public class PostServiceImpl implements PostService {
             }
         }
         return null;
+        PostsEntity postsEntity = existingPostOptional.get(); // Use the existing entity
+
+        // Validate status before setting it
+        if (!Arrays.asList(Valid_status).contains(postRequest.getStatus())) {
+            throw new IllegalArgumentException("Invalid status provided");
+        }
+
+        // Validate scheduled time
+        if (postRequest.getScheduledAt() != null && postRequest.getScheduledAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Scheduled time cannot be in the past");
+        }
+
+        // Update fields
+        postsEntity.setPostText(postRequest.getPostText());
+        postsEntity.setStatus(postRequest.getStatus());
+        postsEntity.setAddedAt(LocalDateTime.now()); // Updated timestamp
+        postsEntity.setScheduledAt(postRequest.getScheduledAt());
+        postsEntity.setUserId(userId);
+        postsEntity.setOrgId(orgId);
+
+        // Save updated entity
+        postsEntity = postsRepo.save(postsEntity);
+
+        // Return response
+        return new PostResponse();
     }
+
 }
