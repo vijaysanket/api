@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AuthAssetRepo extends JpaRepository<AuthAssetEntity, String> {
+
+
 }

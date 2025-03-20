@@ -59,13 +59,13 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 Enumeration<String> headerNames = wrappedRequest.getHeaderNames();
                 while (headerNames.hasMoreElements()) {
                     String headerName = headerNames.nextElement();
-                    log.info("Header {} = {}", headerName, wrappedRequest.getHeader(headerName));
+                    //log.info("Header {} = {}", headerName, wrappedRequest.getHeader(headerName));
                 }
 
                 headerNames = customHeaderRequestWrapper.getHeaderNames();
                 while (headerNames.hasMoreElements()) {
                     String headerName = headerNames.nextElement();
-                    log.info("Header 1 {} = {}", headerName, wrappedRequest.getHeader(headerName));
+                    //log.info("Header 1 {} = {}", headerName, wrappedRequest.getHeader(headerName));
                 }
 
 

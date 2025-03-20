@@ -1,4 +1,14 @@
 spring:
+  cloud:
+    aws:
+      s3:
+        endpoint: http://localhost:4566
+        bucket: local
+      credentials:
+        access-key: test
+        secret-key: test
+      region:
+        static: us-east-1
   jpa:
     hibernate:
       dialect: org.hibernate.dialect.MySQL8Dialect  # Use MySQL8Dialect for MySQL 8+
@@ -47,6 +57,10 @@ channel:
     clientsecret: 9d85d01d76e12b0cf00b3e0744051bb9
     redirecturi: https://localhost:3000/callback/facebook
     scope: public_profile,email,pages_manage_engagement,pages_manage_posts,pages_read_engagement
+
+
+
+
 
 
 

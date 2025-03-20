@@ -55,6 +55,15 @@ CREATE TABLE `PostAccounts` (
   `id` int NOT NULL AUTO_INCREMENT,
   `postId` int DEFAULT NULL,
   `accountId` int DEFAULT NULL,
+
   PRIMARY KEY (`id`)
 );
 
+CREATE TABLE media (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pa_id INT NOT NULL,
+    media_url VARCHAR(255) NOT NULL,
+    media_type ENUM('image', 'video') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pa_id) REFERENCES postaccounts(id) ON DELETE CASCADE
+);

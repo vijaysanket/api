@@ -14,11 +14,14 @@ import com.socialeazy.api.repo.AuthAssetRepo;
 import com.socialeazy.api.services.Connector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+//import org.springframework.http.*;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -229,8 +232,54 @@ public class FacebookConnector implements Connector {
             throw new RuntimeException("Failed to post on Facebook: " + e.getMessage());
         }
     }
-
-
+//    public void postWithOptionalMedia(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry) {
+//
+//        if (accountEntity == null || accountEntity.getAccessToken() == null) {
+//            throw new RuntimeException("Invalid account entity or missing access token");
+//        }
+//
+//        String pageId = accountEntity.getChannelId();
+//        String postUrl;
+//
+//        // Conditional endpoint selection
+//        if (postsEntity.getMediaUrl() != null) {
+//            if (postsEntity.isVideo()) {
+//                postUrl = BASE_URL + pageId + "/videos";  // Video Post
+//            } else {
+//                postUrl = BASE_URL + pageId + "/photos";  // Image Post
+//            }
+//        } else {
+//            postUrl = BASE_URL + pageId + "/feed";         // Text-only Post
+//        }
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.MULTIPART_FORM_DATA);  // Modified content type for media upload
+//
+//        // Creating request body
+//        MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
+//        requestBody.add("message", postsEntity.getPostText());
+//        requestBody.add("access_token", accountEntity.getAccessToken());
+//
+//        // Adding media if available
+//        if (postsEntity.getMediaUrl() != null) {
+//            if (postsEntity.isVideo()) {
+//                requestBody.add("file_url", postsEntity.getMediaUrl());  // Video URL for remote upload
+//            } else {
+//                requestBody.add("url", postsEntity.getMediaUrl());       // Image URL for remote upload
+//            }
+//        }
+//
+//        HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+//
+//        try {
+//            ResponseEntity<String> response = restTemplate.exchange(postUrl, HttpMethod.POST, entity, String.class);
+//            System.out.println("Response Code: " + response.getStatusCodeValue());
+//            System.out.println("Response Body: " + response.getBody());
+//        } catch (HttpClientErrorException e) {
+//            System.err.println("Facebook API Error: " + e.getMessage());
+//            throw new RuntimeException("Failed to post on Facebook: " + e.getMessage());
+//        }
+//    }
 
     private static String bulidAuthorizationUrl(String clientId,String redirectUri, String scopes, String state){
         return AUTHORIZATION_URL + "?" +

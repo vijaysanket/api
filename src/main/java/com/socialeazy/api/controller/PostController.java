@@ -5,8 +5,10 @@ import com.socialeazy.api.domains.responses.PostResponse;
 import com.socialeazy.api.services.PostService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,10 +22,11 @@ public class PostController {
     @Autowired
     private PostService postService;
 
-    @PostMapping("/post")
-    public void createPost(@RequestHeader int userId, @RequestHeader int orgId, @RequestBody PostRequest postRequest) {
-        log.info("Authentication: {}", SecurityContextHolder.getContext().getAuthentication());
-        postService.createPost(userId, orgId, postRequest);
+    @PostMapping(value = "/post",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    //public void createPost(@RequestHeader int userId, @RequestHeader int orgId, @RequestBody PostRequest postRequest){
+    public void createPost(@RequestHeader int userId, @RequestHeader int orgId, @RequestPart("postRequest") PostRequest postRequest,@RequestPart(value = "mediaFiles", required = false) MultipartFile[] mediaFiles) {
+        log.info("Authentication: {}",SecurityContextHolder.getContext().getAuthentication());
+        postService.createPost(userId, orgId, postRequest,mediaFiles);
     }
 
     @PutMapping("/post")

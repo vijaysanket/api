@@ -136,7 +136,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<version>2.20.50</version> <!-- Latest stable version as of now -->
+		</dependency>
 	</dependencies>
 
 	<build>

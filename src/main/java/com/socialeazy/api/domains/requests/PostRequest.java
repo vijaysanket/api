@@ -16,4 +16,5 @@ public class PostRequest {
     private String status = "Draft";
 
     private List<Integer> accountIds;
+
 }

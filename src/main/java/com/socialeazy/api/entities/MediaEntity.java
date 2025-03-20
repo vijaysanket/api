@@ -1,39 +1,32 @@
 package com.socialeazy.api.entities;
 
-
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
 @Data
 @Entity
-@Table(name="Post")
+@Table(name="media")
 @NoArgsConstructor
-public class PostsEntity {
+public class MediaEntity {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @Column
-    private int userId;
+    private int pa_id;
 
     @Column
-    private String postText;
+    private String media_url;
 
     @Column
-    private LocalDateTime addedAt;
+    private String media_type;
 
     @Column
-    private LocalDateTime scheduledAt;
+    private LocalDateTime created_at;
 
-    @Column
-    private String status;
-
-    @Column
-    private int orgId;
 
 }
