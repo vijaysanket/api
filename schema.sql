@@ -5,7 +5,7 @@ use socialeaze;
 create table AuthAsset(
     state varchar(200) primary key,
     codeChallenge varchar(200),
-    codeVerifier varchar(200)
+    codeVerifier varchar(200),
     status varchar(30)
 );
 
@@ -18,9 +18,11 @@ Create table Organisation(
 Create table User(
     id int primary key auto_increment,
     orgId int,
+    emailId varchar(75),
     name varchar(100),
     addedAt datetime,
     isActive boolean
+    password varchar(75)
 );
 
 CREATE TABLE `Accounts` (
@@ -66,4 +68,14 @@ CREATE TABLE media (
     media_type ENUM('image', 'video') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (pa_id) REFERENCES postaccounts(id) ON DELETE CASCADE
+);
+CREATE TABLE content (
+    id INT PRIMARY KEY,
+    postid INT,
+    pa_id INT,
+    content_type VARCHAR(255),
+    post_type VARCHAR(255),
+    text TEXT,
+    FOREIGN KEY (postid) REFERENCES post(id),
+    FOREIGN KEY (pa_id) REFERENCES postaccounts(id)
 );
