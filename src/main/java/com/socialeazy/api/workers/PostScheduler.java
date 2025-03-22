@@ -36,7 +36,7 @@ public class PostScheduler {
     @Autowired
     private RuntimeConstants runtimeConstants;
 
-    @Scheduled(cron = "0 * * * * ?")
+    //@Scheduled(cron = "0 * * * * ?")
     @Transactional
     @SchedulerLock(name = "schedulePost", lockAtMostFor = "60s", lockAtLeastFor = "60s")
     public void schedulePost() {
