@@ -21,7 +21,7 @@ Create table User(
     emailId varchar(75),
     name varchar(100),
     addedAt datetime,
-    isActive boolean
+    isActive boolean,
     password varchar(75)
 );
 
@@ -44,14 +44,13 @@ CREATE TABLE `Accounts` (
 CREATE TABLE `Post` (
   `id` int NOT NULL AUTO_INCREMENT,
   `userId` int DEFAULT NULL,
-  `postText` mediumtext,
   `addedAt` datetime DEFAULT CURRENT_TIMESTAMP,
   `scheduledAt` datetime DEFAULT NULL,
   `status` varchar(30) DEFAULT NULL,
   `orgId` int DEFAULT NULL,
   `channelId` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-)
+);
 
 CREATE TABLE `PostAccounts` (
   `id` int NOT NULL AUTO_INCREMENT,

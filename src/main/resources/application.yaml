@@ -50,7 +50,7 @@ channel:
   instagram:
     clientid: 1697823837436999
     clientsecret: 9d85d01d76e12b0cf00b3e0744051bb9
-    redirecturi: http://localhost:3000/callback/instagram
+    redirecturi: https://0018-223-178-84-123.ngrok-free.app/callback/instagram
     scope: instagram_basic
   facebook:
     clientid: 1697823837436999
