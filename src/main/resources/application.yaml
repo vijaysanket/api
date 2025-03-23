@@ -20,7 +20,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/socialeaze
     username: root
-    password: 1234
+    password: JaGaMaRA1706
     driver-class-name: com.mysql.cj.jdbc.Driver  # Fixed the driver class name
     hikari:
       maximum-pool-size: 5
@@ -47,11 +47,11 @@ channel:
     clientsecret: xu_7MZm41No0CrddMr0905Jh6hlFdC-P1-PnUWfVl6UHxk48Xl
     redirecturi: http://localhost:3000/callback/twitter
     scope: tweet.read tweet.write offline.access users.read
-  Instagram:
-    clientid: 1328218388219966
-    clientsecret: 4d139e8fa987104c4084132930864467
-    redirecturi: https://65f7-223-178-84-15.ngrok-free.app/
-    scope: instagram_business_manage_messages,instagram_business_manage_comments,instagram_graph_user_profile
+  instagram:
+    clientid: 1697823837436999
+    clientsecret: 9d85d01d76e12b0cf00b3e0744051bb9
+    redirecturi: http://localhost:3000/callback/instagram
+    scope: instagram_basic
   facebook:
     clientid: 1697823837436999
     clientsecret: 9d85d01d76e12b0cf00b3e0744051bb9

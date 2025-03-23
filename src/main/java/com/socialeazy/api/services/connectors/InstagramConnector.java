@@ -11,9 +11,7 @@ import com.socialeazy.api.repo.AuthAssetRepo;
 import com.socialeazy.api.services.Connector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.URI;
@@ -40,22 +38,16 @@ public class InstagramConnector implements Connector {
     @Value("${channel.instagram.redirecturi}")
     private String redirectUri;
 
-    @Value("${channel.instagram.scope}")
-    private String scope;
-
     @Autowired
     private AuthAssetRepo authAssetRepo;
 
     @Autowired
     private AccountsRepo accountsRepo;
 
-    @Autowired
-    private RestTemplate restTemplate;
-
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final String TOKEN_URL = "https://graph.facebook.com/v18.0/oauth/access_token";
+    private static final String BASE_URL = "https://graph.facebook.com/v18.0";
     private static final String AUTHORIZATION_URL = "https://api.instagram.com/oauth/authorize";
-    private static final String TOKEN_URL = "https://api.instagram.com/oauth/access_token";
-    private static final String BASE_URL = "https://graph.instagram.com";
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
     @Override
@@ -66,12 +58,16 @@ public class InstagramConnector implements Connector {
     @Override
     public String getAuthUrl() {
         String state = generateRandomState();
-        String authorizationUrl = AUTHORIZATION_URL + "?client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=" + scope + "&response_type=code&state=" + state;
+        String authorizationUrl = AUTHORIZATION_URL +
+                "?client_id=" + clientId +
+                "&redirect_uri=" + redirectUri +
+                "&scope=instagram_business_basic" +
+                "&response_type=code&state=" + state;
 
         AuthAssetEntity authAssetEntity = new AuthAssetEntity();
         authAssetEntity.setState(state);
         authAssetRepo.save(authAssetEntity);
-
+        System.out.println(authorizationUrl);
         return authorizationUrl;
     }
 
@@ -103,36 +99,58 @@ public class InstagramConnector implements Connector {
             JsonNode jsonResponse = objectMapper.readTree(response.body());
 
             String accessToken = jsonResponse.get("access_token").asText();
-            JsonNode userDetails = fetchInstagramUserDetails(accessToken);
+            accessToken = exchangeForLongLivedToken(accessToken);
+
+            String instagramBusinessId = fetchInstagramBusinessId(accessToken);
 
             AccountsEntity accountsEntity = new AccountsEntity();
             accountsEntity.setAccountHandle("instagram");
             accountsEntity.setAccessToken(accessToken);
             accountsEntity.setConnectedAt(LocalDateTime.now());
             accountsEntity.setUserId(1);
-            accountsEntity.setChannelId(userDetails.get("id").asText());
-            accountsEntity.setAccountName(userDetails.get("username").asText());
+            accountsEntity.setChannelId(instagramBusinessId);
+            accountsEntity.setAccountName("Instagram Business");
             accountsRepo.save(accountsEntity);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
-    @Override
-    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry) {
+    private String exchangeForLongLivedToken(String shortLivedToken) throws IOException, InterruptedException {
+        String url = "https://graph.facebook.com/v18.0/oauth/access_token"
+                + "?grant_type=fb_exchange_token"
+                + "&client_id=" + clientId
+                + "&client_secret=" + clientSecret
+                + "&fb_exchange_token=" + shortLivedToken;
 
-    }
-
-
-    private JsonNode fetchInstagramUserDetails(String accessToken) throws IOException, InterruptedException {
-        String userInfoUrl = BASE_URL + "/me?fields=id,username&access_token=" + accessToken;
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(userInfoUrl))
+                .uri(URI.create(url))
                 .GET()
                 .build();
 
         HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
-        return new ObjectMapper().readTree(response.body());
+        JsonNode jsonResponse = new ObjectMapper().readTree(response.body());
+
+        return jsonResponse.has("access_token") ? jsonResponse.get("access_token").asText() : shortLivedToken;
+    }
+
+    private String fetchInstagramBusinessId(String accessToken) throws IOException, InterruptedException {
+        String url = BASE_URL + "/me?fields=accounts{id,name,instagram_business_account}&access_token=" + accessToken;
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .GET()
+                .build();
+        HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+        JsonNode jsonResponse = new ObjectMapper().readTree(response.body());
+
+        JsonNode accounts = jsonResponse.get("accounts");
+        if (accounts != null && accounts.has("data") && accounts.get("data").size() > 0) {
+            JsonNode firstPage = accounts.get("data").get(0);
+            if (firstPage.has("instagram_business_account")) {
+                return firstPage.get("instagram_business_account").get("id").asText();
+            }
+        }
+        throw new RuntimeException("Instagram Business Account not found");
     }
 
     private static String buildFormData(Map<String, String> data) {
@@ -146,5 +164,10 @@ public class InstagramConnector implements Connector {
         byte[] randomBytes = new byte[32];
         SECURE_RANDOM.nextBytes(randomBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+    }
+
+    @Override
+    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry) {
+        // TODO: Implement posting functionality
     }
 }
