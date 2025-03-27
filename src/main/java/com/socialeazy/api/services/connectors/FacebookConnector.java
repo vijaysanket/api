@@ -5,9 +5,7 @@ import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.socialeazy.api.entities.AccountsEntity;
-import com.socialeazy.api.entities.AuthAssetEntity;
-import com.socialeazy.api.entities.PostsEntity;
+import com.socialeazy.api.entities.*;
 import com.socialeazy.api.exceptions.UnAuthorizedException;
 import com.socialeazy.api.repo.AccountsRepo;
 import com.socialeazy.api.repo.AuthAssetRepo;
@@ -15,10 +13,7 @@ import com.socialeazy.api.services.Connector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 //import org.springframework.http.*;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -32,10 +27,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.mysql.cj.util.StringUtils.urlEncode;
 
@@ -59,6 +52,8 @@ public class FacebookConnector implements Connector {
 
     @Autowired
     private AccountsRepo accountsRepo;
+
+
 
 
     @Autowired
@@ -201,49 +196,48 @@ public class FacebookConnector implements Connector {
     private TreeNode getFollowersCount(String accessToken){
         return null;
     }
-    @Override
-    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry) {
-
-        if (accountEntity == null || accountEntity.getAccessToken() == null) {
-            throw new RuntimeException("Invalid account entity or missing access token");
-        }
-        // Facebook API URL for posting
-        String pageId = accountEntity.getChannelId();  // The Page ID
-        String postUrl = BASE_URL  + pageId + "/feed";
-
-        // Creating request headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Content-Type", "application/json");
-
-        // Creating request body
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("message", postsEntity.getPostText());
-        requestBody.put("access_token", accountEntity.getAccessToken());  // Page Access Token
-
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-
-        // Making POST request to Facebook Graph API
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(postUrl, HttpMethod.POST, entity, String.class);
-            System.out.println("Response Code: " + response.getStatusCodeValue());
-            System.out.println("Response Body: " + response.getBody());
-        } catch (HttpClientErrorException e) {
-            System.err.println("Facebook API Error: " + e.getMessage());
-            throw new RuntimeException("Failed to post on Facebook: " + e.getMessage());
-        }
-    }
-//    public void postWithOptionalMedia(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry) {
+//    @Override
+//    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry) {
 //
 //        if (accountEntity == null || accountEntity.getAccessToken() == null) {
 //            throw new RuntimeException("Invalid account entity or missing access token");
 //        }
+//        // Facebook API URL for posting
+//        String pageId = accountEntity.getChannelId();  // The Page ID
+//        String postUrl = BASE_URL  + pageId + "/photos";
 //
+//        // Creating request headers
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.set("Content-Type", "application/json");
+//
+//        // Creating request body
+//        Map<String, Object> requestBody = new HashMap<>();
+//        requestBody.put("message", postsEntity.getPostText());
+//        requestBody.put("access_token", accountEntity.getAccessToken());  // Page Access Token
+//
+//        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+//
+//        // Making POST request to Facebook Graph API
+//        try {
+//            ResponseEntity<String> response = restTemplate.exchange(postUrl, HttpMethod.POST, entity, String.class);
+//            System.out.println("Response Code: " + response.getStatusCodeValue());
+//            System.out.println("Response Body: " + response.getBody());
+//        } catch (HttpClientErrorException e) {
+//            System.err.println("Facebook API Error: " + e.getMessage());
+//            throw new RuntimeException("Failed to post on Facebook: " + e.getMessage());
+//        }
+//    }
+//    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, List<MediaEntity> mediaEntity, boolean retry) {
+//
+//        if (accountEntity == null || accountEntity.getAccessToken() == null) {
+//            throw new RuntimeException("Invalid account entity or missing access token");
+//        }
 //        String pageId = accountEntity.getChannelId();
 //        String postUrl;
 //
 //        // Conditional endpoint selection
-//        if (postsEntity.getMediaUrl() != null) {
-//            if (postsEntity.isVideo()) {
+//        if (mediaEntity.getMedia_url() != null) {
+//            if (mediaEntity.getMedia_type() == "video") {
 //                postUrl = BASE_URL + pageId + "/videos";  // Video Post
 //            } else {
 //                postUrl = BASE_URL + pageId + "/photos";  // Image Post
@@ -261,11 +255,11 @@ public class FacebookConnector implements Connector {
 //        requestBody.add("access_token", accountEntity.getAccessToken());
 //
 //        // Adding media if available
-//        if (postsEntity.getMediaUrl() != null) {
-//            if (postsEntity.isVideo()) {
-//                requestBody.add("file_url", postsEntity.getMediaUrl());  // Video URL for remote upload
+//        if (mediaEntity.getMedia_url() != null) {
+//            if (mediaEntity.getMedia_type() == "video") {
+//                requestBody.add("file_url", mediaEntity.getMedia_url());  // Video URL for remote upload
 //            } else {
-//                requestBody.add("url", postsEntity.getMediaUrl());       // Image URL for remote upload
+//                requestBody.add("url", mediaEntity.getMedia_url());       // Image URL for remote upload
 //            }
 //        }
 //
@@ -280,6 +274,118 @@ public class FacebookConnector implements Connector {
 //            throw new RuntimeException("Failed to post on Facebook: " + e.getMessage());
 //        }
 //    }
+
+    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, List<MediaEntity> mediaEntities, ContentEntity contentEntity, boolean retry) {
+        if (accountEntity == null || accountEntity.getAccessToken() == null) {
+            throw new RuntimeException("Invalid account entity or missing access token");
+        }
+
+        String pageId = accountEntity.getChannelId();
+        String postType = contentEntity.getPostType().toLowerCase(); // "video", "image", or "text"
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        MultiValueMap<String, Object> requestBody = new LinkedMultiValueMap<>();
+        requestBody.add("access_token", accountEntity.getAccessToken());
+
+        if ("video".equals(postType)) {
+            // **🔹 Video Post Handling**
+            Optional<MediaEntity> videoEntity = mediaEntities.stream()
+                    .filter(m -> "video".equalsIgnoreCase(m.getMediaType()))
+                    .findFirst();
+
+            if (videoEntity.isPresent()) {
+                requestBody.add("file_url", videoEntity.get().getMediaUrl());
+                requestBody.add("description", contentEntity.getText()); // Text (Caption) for Video
+
+                String postUrl = BASE_URL + pageId + "/videos"; // Facebook API for video post
+                HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+                postToFacebook(postUrl, entity);
+            } else {
+                throw new RuntimeException("No valid video found for posting.");
+            }
+
+        } else if ("image".equals(postType)) {
+            // **🔹 Multiple Image Post Handling**
+            List<String> imageUrls = mediaEntities.stream()
+                    .filter(m -> "image".equalsIgnoreCase(m.getMediaType()))
+                    .map(MediaEntity::getMediaUrl)
+                    .collect(Collectors.toList());
+
+            if (!imageUrls.isEmpty()) {
+                List<String> photoIds = new ArrayList<>();
+
+                for (String imgUrl : imageUrls) {
+                    MultiValueMap<String, Object> photoRequest = new LinkedMultiValueMap<>();
+                    photoRequest.add("url", imgUrl);
+                    photoRequest.add("userMessage",contentEntity.getText());
+                    photoRequest.add("published", "false"); // Unpublished to be attached later
+                    photoRequest.add("access_token", accountEntity.getAccessToken());
+
+                    HttpEntity<MultiValueMap<String, Object>> photoEntity = new HttpEntity<>(photoRequest, headers);
+                    ResponseEntity<String> response = postToFacebook(BASE_URL + pageId + "/photos", photoEntity);
+
+                    if (response != null && response.getBody().contains("id")) {
+                        String photoId = extractPhotoId(response.getBody());
+                        photoIds.add(photoId);
+                    }
+                }
+
+                // **Attach Images to a Single Feed Post**
+                MultiValueMap<String, Object> feedRequest = new LinkedMultiValueMap<>();
+                feedRequest.add("message", contentEntity.getText()); // Text at the end
+                for (String photoId : photoIds) {
+                    feedRequest.add("attached_media", "{\"media_fbid\":\"" + photoId + "\"}");
+                }
+                feedRequest.add("access_token", accountEntity.getAccessToken());
+
+                HttpEntity<MultiValueMap<String, Object>> feedEntity = new HttpEntity<>(feedRequest, headers);
+                postToFacebook(BASE_URL + pageId + "/feed", feedEntity);
+            } else {
+                throw new RuntimeException("No valid images found for posting.");
+            }
+
+        } else {
+            // **🔹 Text-Only Post**
+            requestBody.add("message", contentEntity.getText());
+
+            String postUrl = BASE_URL + pageId + "/feed"; // Facebook API for text-only post
+            HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            postToFacebook(postUrl, entity);
+        }
+    }
+
+    @Override
+    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry) {
+
+    }
+
+
+    // **Helper Method to Post to Facebook API**
+    private ResponseEntity<String> postToFacebook(String url, HttpEntity<MultiValueMap<String, Object>> entity) {
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            System.out.println("Facebook Post Success: " + response.getBody());
+            return response;
+        } catch (HttpClientErrorException e) {
+            System.err.println("Failed to post to Facebook: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // **Helper Method to Extract Photo ID from Response**
+    private String extractPhotoId(String responseBody) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(responseBody);
+            return jsonNode.has("id") ? jsonNode.get("id").asText() : null;
+        } catch (Exception e) {
+            System.err.println("Failed to extract photo ID: " + e.getMessage());
+            return null;
+        }
+    }
+
+
 
     private static String bulidAuthorizationUrl(String clientId,String redirectUri, String scopes, String state){
         return AUTHORIZATION_URL + "?" +

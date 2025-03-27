@@ -2,6 +2,7 @@ package com.socialeazy.api.workers;
 
 import com.socialeazy.api.constants.RuntimeConstants;
 import com.socialeazy.api.entities.AccountsEntity;
+import com.socialeazy.api.entities.ContentEntity;
 import com.socialeazy.api.entities.PostAccountsEntity;
 import com.socialeazy.api.entities.PostsEntity;
 import com.socialeazy.api.repo.AccountsRepo;
@@ -47,12 +48,13 @@ public class PostScheduler {
 
         for(PostsEntity postsEntity : postsEntityList) {
             List<PostAccountsEntity> postAccountsEntityList = postAccountsRepo.findByPostId(postsEntity.getId());
+
             for(PostAccountsEntity postAccountsEntity : postAccountsEntityList) {
                 if(postAccountsEntity.getStatus().equals("DELETED")) {
                     continue;
                 }
                 AccountsEntity accountEntity = accountsRepo.findById(postAccountsEntity.getAccountId()).get();
-                runtimeConstants.channels.get(accountEntity.getAccountOf().toLowerCase()).post(accountEntity, postsEntity, true);
+                runtimeConstants.channels.get(accountEntity.getAccountOf().toLowerCase()).post(accountEntity, postsEntity,null,null,true);
                 postAccountsEntity.setStatus("PUBLISHED");
                 postAccountsRepo.save(postAccountsEntity);
             }

@@ -5,6 +5,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+
 @Data
 @Entity
 @Table(name="media")
@@ -17,16 +22,15 @@ public class MediaEntity {
     private int id;
 
     @Column
-    private int pa_id;
+    private int contentId;
 
-    @Column
-    private String media_url;
+    @Column(name="media_url")
+    private String mediaUrl;
 
-    @Column
-    private String media_type;
+    @Column(name = "media_type")
+    private String mediaType;
 
-    @Column
-    private LocalDateTime created_at;
-
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
 }

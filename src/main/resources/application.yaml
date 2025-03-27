@@ -1,4 +1,5 @@
 spring:
+  ngrokUrl: https://058c-223-178-80-6.ngrok-free.app
   cloud:
     aws:
       s3:
@@ -52,11 +53,17 @@ channel:
     clientsecret: 9d85d01d76e12b0cf00b3e0744051bb9
     redirecturi: https://0018-223-178-84-123.ngrok-free.app/callback/instagram
     scope: instagram_basic
+
   facebook:
     clientid: 1697823837436999
     clientsecret: 9d85d01d76e12b0cf00b3e0744051bb9
     redirecturi: https://localhost:3000/callback/facebook
-    scope: public_profile,email,pages_manage_engagement,pages_manage_posts,pages_read_engagement
+    scope: public_profile,email,pages_manage_engagement,pages_manage_posts,pages_read_engagement,pages_show_list
+  youtube:
+    clientid: 299988844798-mjiqugl8458o2qgqaao12cth3b31r0cr.apps.googleusercontent.com
+    clientsecret: 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
+    redirecturi: http://localhost:3000/callback/youtube
+    scope: https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtubepartner https://www.googleapis.com/auth/yt-analytics-monetary.readonly https://www.googleapis.com/auth/yt-analytics.readonly
 
 
 

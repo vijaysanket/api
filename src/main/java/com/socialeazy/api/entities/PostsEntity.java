@@ -22,9 +22,6 @@ public class PostsEntity {
     private int userId;
 
     @Column
-    private String postText;
-
-    @Column
     private LocalDateTime addedAt;
 
     @Column
@@ -35,5 +32,8 @@ public class PostsEntity {
 
     @Column
     private int orgId;
+
+//    @Column
+//    private int channelId;
 
 }

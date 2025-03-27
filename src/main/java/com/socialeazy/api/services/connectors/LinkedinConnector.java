@@ -2,9 +2,7 @@ package com.socialeazy.api.services.connectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.socialeazy.api.entities.AccountsEntity;
-import com.socialeazy.api.entities.AuthAssetEntity;
-import com.socialeazy.api.entities.PostsEntity;
+import com.socialeazy.api.entities.*;
 import com.socialeazy.api.repo.AuthAssetRepo;
 import com.socialeazy.api.repo.AccountsRepo;
 import com.socialeazy.api.services.Connector;
@@ -16,7 +14,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -113,7 +110,7 @@ public class LinkedinConnector implements Connector {
 
     // Step 3: Post Content to LinkedIn
     @Override
-    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry) {
+    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, List<MediaEntity> mediaEntity,ContentEntity contentEntity, boolean retry) {
         String accessToken = accountEntity.getAccessToken();
         String author = "urn:li:person:" + accountEntity.getChannelId();
 
@@ -122,7 +119,7 @@ public class LinkedinConnector implements Connector {
                 "lifecycleState", "PUBLISHED",
                 "specificContent", Map.of(
                         "com.linkedin.ugc.ShareContent", Map.of(
-                                "shareCommentary", Map.of("text", postsEntity.getPostText()),
+                                "shareCommentary", Map.of("text", contentEntity.getText()),
                                 "shareMediaCategory", "NONE"
                         )
                 ),
@@ -141,6 +138,11 @@ public class LinkedinConnector implements Connector {
         } else {
             throw new RuntimeException("❌ Failed to post on LinkedIn: " + response.getBody());
         }
+    }
+
+    @Override
+    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry) {
+
     }
 
     // Helper Method: Get LinkedIn Access Token

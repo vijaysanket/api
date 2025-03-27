@@ -6,6 +6,7 @@ import com.socialeazy.api.services.impl.S3Service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -34,6 +35,9 @@ import java.util.regex.Pattern;
 public class S3ServiceImpl implements S3Service {
 
     private final S3Client s3Client;
+
+    @Value("${spring.ngrokUrl}")
+    private String ngrokUrl;
 
     public S3ServiceImpl(@Value("${spring.cloud.aws.credentials.access-key}") String accessKey,
                          @Value("${spring.cloud.aws.credentials.secret-key}") String secretKey,
@@ -125,6 +129,7 @@ public class S3ServiceImpl implements S3Service {
 //            throw new RuntimeException("Error reading file from S3", e);
 //        }
 //    }
+
     @Override
     public String uploadFile(String bucketName, String fileName, InputStream fileStream) {
         try {
@@ -155,6 +160,12 @@ public class S3ServiceImpl implements S3Service {
                     .build();
 
             String fileUrl = s3Utilities.getUrl(getUrlRequest).toString();
+
+            if (fileUrl.contains("http://localhost:4566") && ngrokUrl != null) {
+                fileUrl = fileUrl.replace("http://localhost:4566", ngrokUrl);
+            }
+
+
             // Return the public URL of the uploaded file
             return fileUrl;
 
@@ -167,5 +178,10 @@ public class S3ServiceImpl implements S3Service {
     @Override
     public void readFileFromS3Url(String s3Url, BiConsumer<String, String> lineProcessor) {
 
+    }
+
+    @Override
+    public String uploadFile(MultipartFile mediaFile) {
+        return "";
     }
 }

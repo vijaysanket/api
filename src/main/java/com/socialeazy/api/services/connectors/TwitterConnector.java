@@ -2,9 +2,7 @@ package com.socialeazy.api.services.connectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.socialeazy.api.entities.AccountsEntity;
-import com.socialeazy.api.entities.AuthAssetEntity;
-import com.socialeazy.api.entities.PostsEntity;
+import com.socialeazy.api.entities.*;
 import com.socialeazy.api.exceptions.UnAuthorizedException;
 import com.socialeazy.api.repo.AccountsRepo;
 import com.socialeazy.api.repo.AuthAssetRepo;
@@ -30,11 +28,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
+import java.util.*;
 
 
 @Component
@@ -194,14 +188,14 @@ public class TwitterConnector implements Connector {
     }
 
     @Override
-    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry) {
+    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, List<MediaEntity> mediaEntity, ContentEntity contentEntity, boolean retry) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
         headers.set("Authorization", "Bearer " + accountEntity.getAccessToken());
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("text", postsEntity.getPostText());
+        requestBody.put("text", contentEntity.getText());
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
@@ -213,11 +207,16 @@ public class TwitterConnector implements Connector {
         } catch(HttpClientErrorException.Unauthorized e) {
             if(retry) {
                 refreshAccessToken(accountEntity);
-                post(accountEntity, postsEntity, false);
+                post(accountEntity, postsEntity, mediaEntity,contentEntity,false);
             } else {
                 throw new RuntimeException("Something went wrong");
             }
         }
+    }
+
+    @Override
+    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, boolean retry) {
+
     }
 
     private void refreshAccessToken(AccountsEntity accountEntity) {

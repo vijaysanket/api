@@ -4,11 +4,10 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class PostRequest {
-
-    private String postText;
 
 
     private LocalDateTime scheduledAt;
@@ -16,5 +15,7 @@ public class PostRequest {
     private String status = "Draft";
 
     private List<Integer> accountIds;
+
+    private Map<Integer ,AccountRequest> accountRequest;
 
 }

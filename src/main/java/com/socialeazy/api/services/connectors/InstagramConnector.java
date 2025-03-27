@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.socialeazy.api.entities.AccountsEntity;
 import com.socialeazy.api.entities.AuthAssetEntity;
 import com.socialeazy.api.entities.PostsEntity;
+import com.socialeazy.api.entities.*;
+import com.socialeazy.api.exceptions.UnAuthorizedException;
+
 import com.socialeazy.api.repo.AccountsRepo;
 import com.socialeazy.api.repo.AuthAssetRepo;
 import com.socialeazy.api.services.Connector;
@@ -21,10 +24,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.security.SecureRandom;
 
 import static com.socialeazy.api.services.connectors.LinkedinConnector.generateRandomState;
@@ -129,6 +129,11 @@ public class InstagramConnector implements Connector {
             log.error("Error handling Instagram authentication: {}", e.getMessage());
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void post(AccountsEntity accountEntity, PostsEntity postsEntity, List<MediaEntity> mediaEntity, ContentEntity contentEntity, boolean retry) {
+
     }
 
     @Override

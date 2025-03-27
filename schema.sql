@@ -69,7 +69,7 @@ CREATE TABLE media (
     FOREIGN KEY (pa_id) REFERENCES postaccounts(id) ON DELETE CASCADE
 );
 CREATE TABLE content (
-    id INT PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     postid INT,
     pa_id INT,
     content_type VARCHAR(255),

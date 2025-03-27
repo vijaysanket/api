@@ -1,5 +1,6 @@
 package com.socialeazy.api.services;
 
+import com.socialeazy.api.domains.requests.AccountRequest;
 import com.socialeazy.api.domains.requests.PostRequest;
 import com.socialeazy.api.domains.responses.PostResponse;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,8 @@ import java.util.List;
 @Service
 public interface PostService {
     //void createPost(int userId, int orgId, PostRequest postRequest);
+
+    //void createPost(int userId, int orgId, PostRequest postRequest, MultipartFile[] mediaFiles);
 
     void createPost(int userId, int orgId, PostRequest postRequest, MultipartFile[] mediaFiles);
 

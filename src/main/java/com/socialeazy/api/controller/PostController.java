@@ -1,5 +1,6 @@
 package com.socialeazy.api.controller;
 
+import com.socialeazy.api.domains.requests.AccountRequest;
 import com.socialeazy.api.domains.requests.PostRequest;
 import com.socialeazy.api.domains.responses.PostResponse;
 import com.socialeazy.api.services.PostService;
