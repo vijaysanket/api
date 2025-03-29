@@ -214,7 +214,7 @@ public class LinkedinConnector implements Connector {
     }
 
     // Generate Secure Random State
-    private static String generateRandomState() {
+    static String generateRandomState() {
         byte[] randomBytes = new byte[32];
         SECURE_RANDOM.nextBytes(randomBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
